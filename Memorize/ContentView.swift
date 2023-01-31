@@ -8,31 +8,33 @@
 import SwiftUI
 
 struct ContentView: View {
-	var emojis: [String] {
-		switch selectedTheme {
-		case .smileys:
-			return ["💀", "🥰", "😅", "😔",
-					"🥶", "🥵", "😭", "😎",
-					"🤮", "😳", "🤯", "😡",
-					"😟", "🤩", "🤓"].shuffled()
-		case .vehicles:
-			return ["🚗", "🚙", "🚌", "🏎️",
-					"🚑", "🚓", "🛵", "✈️",
-					"🚃", "🚢", "🚁", "⛵️",
-					"🚂", "🛶",].shuffled()
-		case .numbers:
-			return ["0️⃣", "1️⃣", "2️⃣", "3️⃣",
-					"4️⃣", "5️⃣", "6️⃣", "7️⃣",
-					"8️⃣", "9️⃣", "🔟", "#️⃣",
-					"*️⃣"].shuffled()
-		case .hands:
-			return ["👏", "🤝", "👍", "👎",
-					"✊", "✌️", "✌️", "🤟",
-					"👌", "🤌", "🤏", "🤙"].shuffled()
-		}
-	}
+	@ObservedObject var viewModel: EmojiMemoryGame
 	
-	@State var emojiCount = 4
+//	var emojis: [String] {
+//		switch selectedTheme {
+//		case .smileys:
+//			return ["💀", "🥰", "😅", "😔",
+//					"🥶", "🥵", "😭", "😎",
+//					"🤮", "😳", "🤯", "😡",
+//					"😟", "🤩", "🤓"].shuffled()
+//		case .vehicles:
+//			return ["🚗", "🚙", "🚌", "🏎️",
+//					"🚑", "🚓", "🛵", "✈️",
+//					"🚃", "🚢", "🚁", "⛵️",
+//					"🚂", "🛶",].shuffled()
+//		case .numbers:
+//			return ["0️⃣", "1️⃣", "2️⃣", "3️⃣",
+//					"4️⃣", "5️⃣", "6️⃣", "7️⃣",
+//					"8️⃣", "9️⃣", "🔟", "#️⃣",
+//					"*️⃣"].shuffled()
+//		case .hands:
+//			return ["👏", "🤝", "👍", "👎",
+//					"✊", "✌️", "✌️", "🤟",
+//					"👌", "🤌", "🤏", "🤙"].shuffled()
+//		}
+//	}
+	
+//	@State var emojiCount = 8
 	
 	var colors: [Color] = [.red, .orange, .green, .pink, .blue]
 	@State var selectedColor: Color = .green
@@ -52,9 +54,12 @@ struct ContentView: View {
 			VStack {
 				ScrollView {
 					LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 80, maximum: 90)), count: 4)) {
-						ForEach(emojis[0..<emojiCount], id: \.self) { emoji in
-							CardView(content: emoji, color: selectedColor)
+						ForEach(viewModel.cards) { card in
+							CardView(card: card, color: selectedColor)
 								.aspectRatio(2/3, contentMode: .fit)
+								.onTapGesture {
+									viewModel.choose(card)
+								}
 						}
 					}
 				}
@@ -69,7 +74,6 @@ struct ContentView: View {
 							}
 						}
 						HStack {
-							removeButton
 							ForEach(colors, id: \.self) { color in
 								Image(systemName: "circle.fill")
 									.foregroundColor(color)
@@ -77,7 +81,6 @@ struct ContentView: View {
 										selectedColor = color
 									}
 							}
-							addButton
 						}
 						.font(.largeTitle)
 						.padding()
@@ -95,57 +98,33 @@ struct ContentView: View {
 			}
 		}
     }
-	
-	var addButton: some View {
-		Button {
-			if emojiCount < emojis.count {
-				emojiCount += 1
-			}
-		}label: {
-			Image(systemName: "plus.circle")
-				.foregroundColor(.green)
-		}
-	}
-	
-	var removeButton: some View {
-		Button{
-			if emojiCount > 1 {
-				emojiCount -= 1
-			}
-		}label: {
-			Image(systemName: "minus.circle")
-				.foregroundColor(.red)
-		}
-	}
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+		let game = EmojiMemoryGame()
+		ContentView(viewModel: game)
     }
 }
 
 struct CardView: View {
-	var content: String
+	var card: MemoryGame<String>.Card
 	var color: Color
-	@State var isFaceUp: Bool = true
 	
 	var body: some View {
 		ZStack {
 			let shape = RoundedRectangle(cornerRadius: 25)
 			
-			if isFaceUp {
+			if card.isFaceUp {
 				shape.fill().foregroundColor(.white)
 				shape.strokeBorder(lineWidth: 3).foregroundColor(color)
-				Text(content)
-					.foregroundColor(.orange)
-					.font(.largeTitle)
+				Text(card.content).foregroundColor(.orange).font(.largeTitle)
+			} else if card.isMatched {
+				shape.opacity(0)
 			} else {
 				shape.fill().foregroundColor(color)
 			}
 		}
-		.onTapGesture {
-			isFaceUp.toggle()
-		}
+		.padding(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
 	}
 }

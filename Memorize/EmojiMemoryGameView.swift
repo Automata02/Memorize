@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  EmojiMemoryGameView.swift
 //  Memorize
 //
 //  Created by roberts.kursitis on 30/01/2023.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct ContentView: View {
-	@ObservedObject var viewModel: EmojiMemoryGame
+struct EmojiMemoryGameView: View {
+	@ObservedObject var game: EmojiMemoryGame
 	@State private var isShowingSettings = false
 	
     var body: some View {
@@ -16,11 +16,11 @@ struct ContentView: View {
 			VStack {
 				ScrollView {
 					LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 80, maximum: 90)), count: 4)) {
-						ForEach(viewModel.cards) { card in
-							CardView(card: card, color: viewModel.selectedColor)
+						ForEach(game.cards) { card in
+							CardView(card, game.selectedColor)
 								.aspectRatio(2/3, contentMode: .fit)
 								.onTapGesture {
-									viewModel.choose(card)
+									game.choose(card)
 								}
 						}
 					}
@@ -30,7 +30,7 @@ struct ContentView: View {
 					VStack {
 						Text("Pick a theme!")
 							.font(.title)
-						Picker("", selection: $viewModel.selectedTheme) {
+						Picker("", selection: $game.selectedTheme) {
 							ForEach(EmojiMemoryGame.Themes.allCases, id: \.self) { theme in
 								Label(theme.rawValue.capitalized, systemImage: EmojiMemoryGame.titles[theme.rawValue] ?? "")
 							}
@@ -40,7 +40,7 @@ struct ContentView: View {
 								Image(systemName: "circle.fill")
 									.foregroundColor(color)
 									.onTapGesture {
-										viewModel.changeThemeColor(color)
+										game.changeThemeColor(color)
 									}
 							}
 						}
@@ -48,14 +48,14 @@ struct ContentView: View {
 						.padding()
 					}
 				} else {
-					Text("Score: \(viewModel.fetchScore())")
+					Text("Score: \(game.fetchScore())")
 				}
 			}
-			.navigationTitle(viewModel.currentTheme.title.capitalized)
+			.navigationTitle(game.currentTheme.title.capitalized)
 			.toolbar {
 				ToolbarItem(placement: .navigationBarLeading) {
 					Button {
-						viewModel.restartGame()
+						game.restartGame()
 					} label: {
 						Image(systemName: "arrow.clockwise.circle.fill")
 							.foregroundColor(.primary)
@@ -77,28 +77,45 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
 		let game = EmojiMemoryGame()
-		ContentView(viewModel: game)
+		EmojiMemoryGameView(game: game)
     }
 }
 
 struct CardView: View {
-	var card: MemoryGame<String>.Card
+	private let card: MemoryGame<String>.Card
 	var color: Color
 	
+	init(_ card: EmojiMemoryGame.Card, _ color: Color) {
+		self.card = card
+		self.color = color
+	}
+	
 	var body: some View {
-		ZStack {
-			let shape = RoundedRectangle(cornerRadius: 25)
-			
-			if card.isFaceUp {
-				shape.fill().foregroundColor(.white)
-				shape.strokeBorder(lineWidth: 3).foregroundColor(color)
-				Text(card.content).foregroundColor(.orange).font(.largeTitle)
-			} else if card.isMatched {
-				shape.opacity(0)
-			} else {
-				shape.fill().foregroundColor(color)
+		GeometryReader { geometry in
+			ZStack {
+				let shape = RoundedRectangle(cornerRadius: DrawingConstants.cornerRadius)
+				
+				if card.isFaceUp {
+					shape.fill().foregroundColor(.white)
+					shape.strokeBorder(lineWidth: DrawingConstants.lineWidth).foregroundColor(color)
+					Text(card.content).font(font(in: geometry.size))
+				} else if card.isMatched {
+					shape.opacity(0)
+				} else {
+					shape.fill().foregroundColor(color)
+				}
 			}
+			.padding(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
 		}
-		.padding(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
+	}
+	
+	private func font(in size: CGSize) -> Font {
+		Font.system(size: min(size.width, size.height) * DrawingConstants.fontScale)
+	}
+	
+	private struct DrawingConstants {
+		static let cornerRadius: CGFloat = 10
+		static let lineWidth: CGFloat = 3
+		static let fontScale: CGFloat = 0.8
 	}
 }

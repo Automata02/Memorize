@@ -10,6 +10,7 @@ import SwiftUI
 #warning("TODO: Allow switching emojis with intent.")
 
 class EmojiMemoryGame: ObservableObject {
+	typealias Card = MemoryGame<String>.Card
 	//MARK: Theme code
 	init() {
 		let theme = EmojiMemoryGame.themes.randomElement()!
@@ -33,12 +34,12 @@ class EmojiMemoryGame: ObservableObject {
 	}
 	private static let themes: [Theme] = [
 		Theme(title: "vehicles", emojis: ["🚗", "🚙", "🚌", "🏎️", "🚑", "🚓", "🛵", "✈️", "🚃", "🚢", "🚁", "⛵️", "🚂", "🛶"], numberOfPairs: 4, color: .gray),
-		Theme(title: "numbers", emojis: ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "#️⃣", "*️⃣"], numberOfPairs: 6, color: .secondary),
+		Theme(title: "numbers", emojis: ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "#️⃣", "*️⃣"], numberOfPairs: 6, color: .purple),
 		Theme(title: "hands", emojis: ["👏", "🤝", "👍", "👎", "✊", "✌️", "✌️", "🤟", "👌", "🤌", "🤏", "🤙"], numberOfPairs: 8, color: .yellow),
 		Theme(title: "smileys", emojis: ["💀", "🥰", "😅", "😔", "🥶", "🥵", "😭", "😎", "🤮", "😳", "🤯", "😡", "😟", "🤩", "🤓"], numberOfPairs: 8, color: .blue),
-		Theme(title: "ghosts", emojis: ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "#️⃣", "*️⃣"], numberOfPairs: 6, color: .secondary),
+		Theme(title: "ghosts", emojis: ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "#️⃣", "*️⃣"], numberOfPairs: 6, color: .pink),
 		//As per task 4 of Lecture 4 Fresh theme has fewer emojis than possible pairs
-		Theme(title: "fresh", emojis: ["🍏", "🥝", "🥑", "🥦"].shuffled(), numberOfPairs: 5, color: .secondary)
+		Theme(title: "fresh", emojis: ["🍏", "🥝", "🥑", "🥦"].shuffled(), numberOfPairs: 5, color: .green)
 	]
 	
 	static let titles = ["smileys": "face.smiling.inverse",
@@ -75,7 +76,7 @@ class EmojiMemoryGame: ObservableObject {
 	@Published private var model = createMemoryGame(with: themes.randomElement()!)
 	
 	
-	var cards: Array<MemoryGame<String>.Card> {
+	var cards: Array<Card> {
 		return model.cards
 	}
 	
@@ -84,7 +85,7 @@ class EmojiMemoryGame: ObservableObject {
 	}
 	
 	//MARK: Intent(s)
-	func choose(_ card: MemoryGame<String>.Card) {
+	func choose(_ card: Card) {
 		model.choose(card)
 	}
 	

@@ -9,44 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
 	@ObservedObject var viewModel: EmojiMemoryGame
-	
-//	var emojis: [String] {
-//		switch selectedTheme {
-//		case .smileys:
-//			return ["💀", "🥰", "😅", "😔",
-//					"🥶", "🥵", "😭", "😎",
-//					"🤮", "😳", "🤯", "😡",
-//					"😟", "🤩", "🤓"].shuffled()
-//		case .vehicles:
-//			return ["🚗", "🚙", "🚌", "🏎️",
-//					"🚑", "🚓", "🛵", "✈️",
-//					"🚃", "🚢", "🚁", "⛵️",
-//					"🚂", "🛶",].shuffled()
-//		case .numbers:
-//			return ["0️⃣", "1️⃣", "2️⃣", "3️⃣",
-//					"4️⃣", "5️⃣", "6️⃣", "7️⃣",
-//					"8️⃣", "9️⃣", "🔟", "#️⃣",
-//					"*️⃣"].shuffled()
-//		case .hands:
-//			return ["👏", "🤝", "👍", "👎",
-//					"✊", "✌️", "✌️", "🤟",
-//					"👌", "🤌", "🤏", "🤙"].shuffled()
-//		}
-//	}
-	
-//	@State var emojiCount = 8
-	
-	var colors: [Color] = [.red, .orange, .green, .pink, .blue]
-	@State var selectedColor: Color = .green
-	
-	@State private var selectedTheme = Themes.smileys
-	enum Themes: String, CaseIterable {
-		case smileys, vehicles, numbers, hands
-	}
-	let titles = ["smileys": "face.smiling.inverse",
-				  "vehicles": "car.fill",
-				  "numbers": "number.circle.fill",
-				  "hands": "hand.raised.fill"]
 	@State private var isShowingSettings = false
 	
     var body: some View {
@@ -55,7 +17,7 @@ struct ContentView: View {
 				ScrollView {
 					LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 80, maximum: 90)), count: 4)) {
 						ForEach(viewModel.cards) { card in
-							CardView(card: card, color: selectedColor)
+							CardView(card: card, color: viewModel.selectedColor)
 								.aspectRatio(2/3, contentMode: .fit)
 								.onTapGesture {
 									viewModel.choose(card)
@@ -68,32 +30,44 @@ struct ContentView: View {
 					VStack {
 						Text("Pick a theme!")
 							.font(.title)
-						Picker("", selection: $selectedTheme) {
-							ForEach(Themes.allCases, id: \.self) { theme in
-								Label(theme.rawValue.capitalized, systemImage: titles[theme.rawValue] ?? "")
+						Picker("", selection: $viewModel.selectedTheme) {
+							ForEach(EmojiMemoryGame.Themes.allCases, id: \.self) { theme in
+								Label(theme.rawValue.capitalized, systemImage: EmojiMemoryGame.titles[theme.rawValue] ?? "")
 							}
 						}
 						HStack {
-							ForEach(colors, id: \.self) { color in
+							ForEach(EmojiMemoryGame.colors, id: \.self) { color in
 								Image(systemName: "circle.fill")
 									.foregroundColor(color)
 									.onTapGesture {
-										selectedColor = color
+										viewModel.changeThemeColor(color)
 									}
 							}
 						}
 						.font(.largeTitle)
 						.padding()
 					}
+				} else {
+					Text("Score: \(viewModel.fetchScore())")
 				}
 			}
-			.navigationTitle("Memorize")
+			.navigationTitle(viewModel.currentTheme.title.capitalized)
 			.toolbar {
-				Button {
-					isShowingSettings.toggle()
-				} label: {
-					Image(systemName: "gearshape.fill")
-						.foregroundColor(.primary)
+				ToolbarItem(placement: .navigationBarLeading) {
+					Button {
+						viewModel.restartGame()
+					} label: {
+						Image(systemName: "arrow.clockwise.circle.fill")
+							.foregroundColor(.primary)
+					}
+				}
+				ToolbarItem(placement: .navigationBarTrailing) {
+					Button {
+						isShowingSettings.toggle()
+					} label: {
+						Image(systemName: "gearshape.fill")
+							.foregroundColor(.primary)
+					}
 				}
 			}
 		}

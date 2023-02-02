@@ -11,6 +11,7 @@ import SwiftUI
 
 class EmojiMemoryGame: ObservableObject {
 	typealias Card = MemoryGame<String>.Card
+	
 	//MARK: Theme code
 	init() {
 		let theme = EmojiMemoryGame.themes.randomElement()!

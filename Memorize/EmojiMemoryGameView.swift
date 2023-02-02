@@ -11,21 +11,20 @@ struct EmojiMemoryGameView: View {
 	@ObservedObject var game: EmojiMemoryGame
 	@State private var isShowingSettings = false
 	
-    var body: some View {
+	var body: some View {
 		NavigationView {
 			VStack {
-				ScrollView {
-					LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 80, maximum: 90)), count: 4)) {
-						ForEach(game.cards) { card in
-							CardView(card, game.selectedColor)
-								.aspectRatio(2/3, contentMode: .fit)
-								.onTapGesture {
-									game.choose(card)
-								}
-						}
+				AspectVGrid(items: game.cards, aspectRatio: 2/3) { card in
+					if card.isMatched && card.isFaceUp {
+						Rectangle().opacity(0)
+					} else {
+						CardView(card, game.selectedColor)
+							.padding(4)
+							.onTapGesture {
+								game.choose(card)
+							}
 					}
 				}
-				Spacer()
 				if isShowingSettings {
 					VStack {
 						Text("Pick a theme!")
@@ -71,13 +70,14 @@ struct EmojiMemoryGameView: View {
 				}
 			}
 		}
-    }
+	}
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
 		let game = EmojiMemoryGame()
-		EmojiMemoryGameView(game: game)
+		game.choose(game.cards.first!)
+		return EmojiMemoryGameView(game: game)
     }
 }
 
@@ -98,6 +98,7 @@ struct CardView: View {
 				if card.isFaceUp {
 					shape.fill().foregroundColor(.white)
 					shape.strokeBorder(lineWidth: DrawingConstants.lineWidth).foregroundColor(color)
+					Pie(startAngle: Angle(degrees: 0-90), endAngle: Angle(degrees: 110-90)).padding(5).opacity(0.5)
 					Text(card.content).font(font(in: geometry.size))
 				} else if card.isMatched {
 					shape.opacity(0)
@@ -116,6 +117,6 @@ struct CardView: View {
 	private struct DrawingConstants {
 		static let cornerRadius: CGFloat = 10
 		static let lineWidth: CGFloat = 3
-		static let fontScale: CGFloat = 0.8
+		static let fontScale: CGFloat = 0.65
 	}
 }
